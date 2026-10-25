@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Catalogue dashboard — LabelLens{% endblock %}
+{% block content %}
+<section class="container section-pad dashboard-page">
+  <div class="eyebrow">CATALOGUE OVERVIEW</div><h1 class="page-title">What LabelLens knows.</h1>
+  <p class="hero-text">A live snapshot of product records saved in this catalogue. It tracks product information, not anyone’s eating habits.</p>
+  <div class="dashboard-actions"><a href="{% url 'discover' %}" class="btn btn-brand">Explore products</a><a href="{% url 'compare' %}" class="btn btn-outline-brand">Compare two products</a></div>
+  <div class="dashboard-stats">
+    <article class="dashboard-stat"><span>Product records</span><strong>{{ count }}</strong><small>Saved source records</small></article>
+    <article class="dashboard-stat"><span>Nutrition available</span><strong>{{ with_nutrition }} <small>/ {{ count }}</small></strong><small>{{ nutrition_percent }}% have at least one reported nutrient</small></article>
+    <article class="dashboard-stat"><span>Brands</span><strong>{{ brands_count }}</strong><small>Linked to product records</small></article>
+    <article class="dashboard-stat"><span>Categories</span><strong>{{ categories_count }}</strong><small>Linked to product records</small></article>
+  </div>
+  <section class="panel dashboard-insights"><div class="eyebrow">NUTRITION SNAPSHOT</div><h2>Reported sugars by category</h2>
+    {% if insights %}<p class="quiet">Each average uses source-reported sugar values per 100 g. Categories need at least three products with values. This is descriptive catalogue data, not a health rating.</p>
+      <div class="dashboard-chart"><canvas id="categoryChart" aria-label="Average source-reported sugars per 100 grams by category" role="img"></canvas></div>
+      <div class="table-responsive"><table class="table dashboard-insight-table"><thead><tr><th>Category</th><th>Average sugars</th><th>Products with values</th></tr></thead><tbody>{% for item in insights %}<tr><td>{{ item.name }}</td><td>{{ item.average|floatformat:1 }} g per 100 g</td><td>{{ item.products }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<p class="quiet">There are not enough source-reported sugar values yet to show a category summary. No values are estimated.</p>{% endif %}
+  </section>
+  <div class="section-head mt-5"><div><div class="eyebrow">MORE COMPLETE SOURCE RECORDS</div><h2>Products with more label information</h2><p class="quiet">Products with more reported nutrition and ingredient information appear first.</p></div><a class="text-link" href="{% url 'discover' %}">Browse all →</a></div>
+  {% if recent %}<div class="product-grid">{% for p in recent %}{% include 'partials/product_card.html' %}{% endfor %}</div>{% else %}<div class="empty-box"><h3>No product records yet</h3><p>Search for a product to start exploring the catalogue.</p><a href="{% url 'discover' %}" class="btn btn-brand">Discover products</a></div>{% endif %}
+  {% if user.is_staff %}<section class="panel mt-4"><h2>Recent data imports</h2>{% for i in imports %}<p><strong>{{ i.status }}</strong> · {{ i.barcode|default:i.query }} · {{ i.detail }}</p>{% empty %}<p class="quiet">No import activity yet.</p>{% endfor %}<a href="/admin/">Open data administration →</a></section>{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}{% if insights %}{{ insights|json_script:"category-chart-data" }}<script>const insightData=JSON.parse(document.getElementById("category-chart-data").textContent);const insightCanvas=document.getElementById("categoryChart");if(insightCanvas&&window.Chart){new Chart(insightCanvas,{type:"bar",data:{labels:insightData.map(x=>x.name),datasets:[{label:"Average sugars (g per 100 g)",data:insightData.map(x=>x.average),backgroundColor:"#5f9473",borderRadius:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:context=>`${context.parsed.y.toFixed(1)} g per 100 g`}}},scales:{y:{beginAtZero:true,title:{display:true,text:"g per 100 g"}}}}});}{% endif %}{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Compare products — LabelLens{% endblock %}
+{% block content %}
+<section class="page-hero"><div class="container"><div class="eyebrow">SIDE BY SIDE</div><h1>Compare with <em>context.</em></h1><p class="hero-text">Choose two products by name or brand. We’ll line up the reported facts so you can compare them easily.</p>
+  <form class="compare-picker" method="get" id="compare-picker">
+    <label class="picker-category">Narrow suggestions by category<select id="product-category" name="category" onchange="this.form.submit()"><option value="">All categories</option>{% for category in comparison_categories %}<option value="{{ category.value }}" {% if comparison_category == category.value %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label>
+    <label class="picker-field">First product<input type="search" id="pick-a" list="product-options" placeholder="Search a name or brand" value="{{ selected_a_label }}" autocomplete="off" required><input type="hidden" name="a" id="barcode-a" value="{% if selected_a %}{{ selected_a.barcode }}{% endif %}"></label>
+    <label class="picker-field">Second product<input type="search" id="pick-b" list="product-options" placeholder="Search another product" value="{{ selected_b_label }}" autocomplete="off" required><input type="hidden" name="b" id="barcode-b" value="{% if selected_b %}{{ selected_b.barcode }}{% endif %}"></label>
+    <datalist id="product-options">{% for product in chooser_products %}<option value="{{ product.label }}" data-barcode="{{ product.barcode }}" data-categories="{{ product.categories }}"></option><option value="{{ product.brand_label }}" data-barcode="{{ product.barcode }}" data-categories="{{ product.categories }}"></option>{% endfor %}</datalist>
+    <button class="btn btn-brand" type="submit">Compare products <span>→</span></button>
+  </form>
+  <p class="source-note">Choose a suggestion from the list for each field. You can start from any product page using “Compare with another.”</p>
+</div></section>
+<section class="container section-pad">
+{% if comparison_ready %}
+  <div class="comparison-intro"><div><div class="eyebrow">YOUR COMPARISON</div><h2>{{ products|length }} products selected</h2></div><p class="quiet">Values stay separated by nutrient, unit and measurement basis. Missing source values are labeled “Not reported.”</p></div>
+  <section class="panel"><div class="eyebrow">LIKE FOR LIKE</div><h2>Difference in reported values</h2>{% if compare_rows %}<p class="quiet">This shows the highest-to-lowest measured difference among selected products with comparable values. It is not an overall health score.</p><div class="table-responsive"><table class="table"><thead><tr><th>Nutrient</th><th>Basis</th><th>Difference</th><th>Products reporting it</th></tr></thead><tbody>{% for row in compare_rows %}<tr><td>{{ row.name }}</td><td>per {{ row.basis }}</td><td><strong>{{ row.spread|floatformat:2 }} {{ row.unit }}</strong></td><td>{{ row.count }} of {{ products|length }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="quiet">These products do not have matching reported nutrient values yet. You can still review their ingredients, labels and source details below.</p>{% endif %}</section>
+  <div class="table-responsive comparison-wrap"><table class="table comparison-table"><thead><tr><th>Product</th>{% for p in products %}<th><div class="compare-product">{% if p.image_url %}<img src="{{ p.image_url }}" alt="" loading="lazy">{% endif %}<a href="{% url 'product_detail' p.barcode %}">{{ p.name }}</a><span>{{ p.brands.all|join:", "|default:"Brand not provided" }}</span></div></th>{% endfor %}</tr></thead><tbody>
+  {% for row in nutrition_matrix %}<tr><th>{{ row.name }}<br><span class="quiet">per {{ row.basis }}</span></th>{% for cell in row.values %}<td>{% if cell.reported %}<strong>{{ cell.value|floatformat:2 }} {{ row.unit }}</strong>{% else %}<span class="missing-value">Not reported</span>{% endif %}</td>{% endfor %}</tr>{% empty %}<tr><th>Nutrition facts</th><td colspan="{{ products|length }}" class="quiet">No nutrition facts are available for these selections.</td></tr>{% endfor %}
+  <tr><th>Ingredients</th>{% for p in products %}<td>{{ p.ingredients_text|default:"Not reported"|truncatechars:300 }}</td>{% endfor %}</tr><tr><th>Declared allergens</th>{% for p in products %}<td>{{ p.allergens|default:"Not reported" }}</td>{% endfor %}</tr><tr><th>Source labels</th>{% for p in products %}<td>{{ p.labels|default:"Not reported" }}</td>{% endfor %}</tr><tr><th>Source record</th>{% for p in products %}<td><a href="{{ p.source_url }}" target="_blank" rel="noopener">Open Food Facts ↗</a></td>{% endfor %}</tr></tbody></table></div>
+  <p class="quality-note">A missing value means it was not provided in the source record. It does not mean zero. Compare values with the same basis (per 100 g, per 100 ml, or per serving).</p>
+{% else %}
+  <div class="empty-box"><div class="empty-icon">⇄</div><h2>Choose two products to compare</h2><p>Search for each product above and select a suggested match. Start with a product name or brand; no barcode lookup is needed.</p><a href="{% url 'discover' %}" class="btn btn-outline-brand">Browse products</a></div>
+{% endif %}
+</section>
+{% endblock %}

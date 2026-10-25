@@ -1,0 +1,9 @@
+Django>=5.2.8,<5.3
+djangorestframework>=3.16,<4
+requests>=2.32,<3
+python-dotenv>=1.1,<2
+dj-database-url>=2.3,<3
+psycopg[binary]>=3.2,<4
+PyMySQL>=1.1,<2
+# Optional explainable similarity model; deterministic ranking works without it.
+scikit-learn>=1.7,<2

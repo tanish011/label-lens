@@ -1,0 +1,4 @@
+from django.contrib import admin
+from django.urls import path
+from catalog import views, api
+urlpatterns = [path("admin/", admin.site.urls), path("", views.home, name="home"), path("products/", views.discover, name="discover"), path("products/<str:barcode>/", views.product_detail, name="product_detail"), path("compare/", views.compare, name="compare"), path("dashboard/", views.dashboard, name="dashboard"), path("about/", views.about, name="about"), path("accounts/login/", views.login_view, name="login"), path("accounts/logout/", views.logout_view, name="logout"), path("accounts/register/", views.register, name="register"), path("api/products/", api.search_api, name="api_search"), path("api/products/<str:barcode>/", api.detail_api, name="api_detail"), path("api/compare/", api.compare_api, name="api_compare"), path("api/products/<str:barcode>/alternatives/", api.alternatives_api, name="api_alternatives")]
