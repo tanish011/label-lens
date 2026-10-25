@@ -39,6 +39,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 Copy-Item .env.example .env
 python manage.py migrate
+python manage.py seed_catalog
 python manage.py createsuperuser
 python manage.py runserver
 ```
